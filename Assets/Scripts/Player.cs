@@ -8,6 +8,7 @@ public class Player : MonoBehaviour
 
     private State currentState;
 
+    public GameObject projectile;
     public GameObject graphics;
     public GameObject eyesLookingLeft;
     public GameObject eyesLookRight;
@@ -19,6 +20,7 @@ public class Player : MonoBehaviour
     public LayerMask groundLayer;
 
     public bool isWallSliding;
+    public float wallSlideGravity; 
     public Transform wallCheckLeft;
     public Transform wallCheckRight;
     public float wallCheckRadius;
@@ -38,7 +40,8 @@ public class Player : MonoBehaviour
     public float fallMultiplier;
     public float lowJumpMultiplier;
 
-    
+    public float shootForce;
+
     public Vector2 crouchScale;
     private Vector2 defaultScale;
 
@@ -66,14 +69,20 @@ public class Player : MonoBehaviour
     }
 
 
-    void Update()
-    {
-        HandleControls();
-    }
-
-    private void FixedUpdate()
+    private void Update()
     {
         stateMachine.Update();
+
+        HandleShootInput();
+
+        if (Input.GetKey(KeyCode.Space))
+        {
+            graphics.transform.localScale = Vector2.Lerp(graphics.transform.localScale, stretchScale, animSpeed);
+        }
+        else
+        {
+            graphics.transform.localScale = Vector2.Lerp(graphics.transform.localScale, graphicsDefaultScale, animSpeed);
+        }
     }
 
     private void OnDrawGizmos()
@@ -131,6 +140,7 @@ public class Player : MonoBehaviour
         if (Input.GetKeyDown("space"))
         {
             WallJump();
+            
         }
     }
 
@@ -146,16 +156,21 @@ public class Player : MonoBehaviour
         }
     }
 
-    void HandleControls()
+    void HandleShootInput()
     {
-        if (Input.GetKey(KeyCode.Space))
+        if(Input.GetMouseButtonDown(0))
         {
-            graphics.transform.localScale = Vector2.Lerp(graphics.transform.localScale, stretchScale, animSpeed);
+            Vector3 screenPoint = Input.mousePosition;
+            screenPoint.z = Mathf.Abs(Camera.main.transform.position.z); //distance of the plane from the camera
+            Vector3 direction = Vector3.Normalize(Camera.main.ScreenToWorldPoint(screenPoint) - transform.position) ;
+            Shoot(direction);
         }
-        else
-        {
-            graphics.transform.localScale = Vector2.Lerp(graphics.transform.localScale, graphicsDefaultScale, animSpeed);
-        }
+    }
+        
+    void Shoot(Vector2 direction)
+    {
+        GameObject newProjectile = Instantiate(projectile, transform.position, transform.rotation);
+        newProjectile.GetComponent<Rigidbody2D>().AddForce(direction * shootForce);
     }
 
     void Move(Vector2 direction)
@@ -184,6 +199,7 @@ public class Player : MonoBehaviour
     {
         rb.AddForce(new Vector2(wallJumpDirection.x * lookDirection.x, wallJumpDirection.y) * walljumpForce, ForceMode2D.Impulse);
         jumpParticle.Play();
+        //stateMachine.ChangeState(new WallJumpingState(this));
     }
 
     void Crouch()
@@ -223,8 +239,13 @@ public class Player : MonoBehaviour
 
     public void StartWallSlide()
     {
-        rb.velocity = new Vector2(0, -0.5f);
-        rb.gravityScale = 0;
+        if(CheckGround()) {
+            rb.velocity = new Vector2(0, rb.velocity.x / 2);
+        } else {
+            rb.velocity = Vector2.zero;
+        }
+        
+        rb.gravityScale = wallSlideGravity;
         rb.drag = 0;
     }
 
@@ -263,6 +284,12 @@ public class GroundedState : State
         if (!owner.CheckGround())
         {
             owner.stateMachine.ChangeState(new JumpingState(owner));
+        }
+
+        Vector2 detectedWall = owner.CheckWall();
+        if(owner.CheckWall() != Vector2.zero) {
+            owner.SetLookDirection(-detectedWall);
+            owner.stateMachine.ChangeState(new WallSlidingState(owner));
         }
     }
 
@@ -327,6 +354,10 @@ public class WallSlidingState : State{
     {
         owner.HandleWallJumpInput();
 
+        if(owner.CheckGround()) {
+            owner.HandleMovementInput();
+        }
+
         if (owner.CheckWall() == Vector2.zero)
         {
             if (owner.CheckGround())
@@ -342,5 +373,35 @@ public class WallSlidingState : State{
     public void Exit()
     {
         owner.StopWallSlide();
+    }
+}
+
+public class WallJumpingState : State{
+    Player owner;
+
+    public WallJumpingState(Player owner)
+    {
+        this.owner = owner;
+    }
+    
+    public void Enter()
+    {
+        owner.StartWallSlide();
+    }
+
+    public void Execute()
+    {
+
+    }
+
+    public void Exit()
+    {
+
+    }
+
+    IEnumerator DelayStateChange() 
+    {
+        yield return new WaitForSeconds(.5f);
+        owner.stateMachine.ChangeState(new JumpingState(owner));
     }
 }

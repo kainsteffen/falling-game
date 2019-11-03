@@ -15,9 +15,9 @@ TagManager:
   - 
   - Ground
   - Wall
-  - 
-  - 
-  - 
+  - Projectile
+  - Player
+  - PostProcessing
   - 
   - 
   - 
