@@ -19,9 +19,9 @@ TagManager:
   - Projectile
   - Player
   - PostProcessing
-  - 
-  - 
-  - 
+  - Enemy
+  - EnemyProjectile
+  - PlayerProjectile
   - 
   - 
   - 

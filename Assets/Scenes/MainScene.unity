@@ -133,7 +133,6 @@ GameObject:
   - component: {fileID: 2414758}
   - component: {fileID: 2414760}
   - component: {fileID: 2414761}
-  - component: {fileID: 2414762}
   m_Layer: 11
   m_Name: Player
   m_TagString: Untagged
@@ -197,6 +196,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9dfe8a7522d351e4baac0dc8990df6d2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  touchController: {fileID: 1460517518}
+  timeManager: {fileID: 735661157}
   projectile: {fileID: 1618399844475987408, guid: b2713eb3d50d5aa49b49a5922d2c43ad,
     type: 3}
   graphics: {fileID: 978064166}
@@ -226,7 +227,10 @@ MonoBehaviour:
   fallMultiplier: 6.5
   lowJumpMultiplier: 5.5
   shootForce: 1000
-  crouchScale: {x: 1.25, y: 0.7}
+  slideForce: 1
+  slideDuration: 1
+  slideTimer: 0
+  slideScale: {x: 1.25, y: 0.6}
   animSpeed: 0.25
   stretchScale: {x: 0.7, y: 1.25}
   squashScale: {x: 0, y: 0}
@@ -263,34 +267,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a1f79ea86ab8bc42ac21fdcdb2dfe23, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &2414762
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2414756}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Actions: {fileID: -944628639613478452, guid: fb4b0e4cfc56d334b9d5d3ea3e8a5f71,
-    type: 3}
-  m_NotificationBehavior: 0
-  m_UIInputModule: {fileID: 0}
-  m_DeviceLostEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  m_DeviceRegainedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  m_ActionEvents: []
-  m_NeverAutoSwitchControlSchemes: 0
-  m_DefaultControlScheme: 
-  m_DefaultActionMap: 
-  m_SplitScreenIndex: -1
-  m_Camera: {fileID: 0}
+  longPressDuration: 0
+  tapRadiusPercent: 0
+  swipeMinInputTime: 0
+  swipeUpXMaxThresholdPercent: 0
+  swipeUpYMinThresholdPercent: 0
+  swipeRightXMinThresholdPercent: 0
+  swipeRightYMaxThresholdPercent: 0
+  swipeDownXMaxThresholdPercent: 0
+  swipeDownYMinThresholdPercent: 0
+  longPressDetected: 0
+  startPosition: {x: 0, y: 0}
+  endPosition: {x: 0, y: 0}
+  pressedTimer: 0
 --- !u!1 &55203225
 GameObject:
   m_ObjectHideFlags: 0
@@ -303,13 +292,13 @@ GameObject:
   - component: {fileID: 55203228}
   - component: {fileID: 55203227}
   - component: {fileID: 55203226}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: Enemy (3)
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &55203226
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -323,6 +312,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 1
+  target: {fileID: 2414757}
+  shootingCooldown: 2
+  shootingTimer: 0
+  shootForce: 10
+  projectile: {fileID: 5335234616209376763, guid: 1288a292d3904b04381a94aca2bf3229,
+    type: 3}
   onDeathEffect: {fileID: 2202897458413698358, guid: 30b7a1957135ff940be467ce58480000,
     type: 3}
 --- !u!61 &55203227
@@ -408,7 +403,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 55203225}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 24.49, y: 19.77, z: 0}
+  m_LocalPosition: {x: 24.63, y: 12.8, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -426,13 +421,13 @@ GameObject:
   - component: {fileID: 70508255}
   - component: {fileID: 70508254}
   - component: {fileID: 70508253}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: Enemy (4)
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &70508253
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -446,6 +441,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 1
+  target: {fileID: 2414757}
+  shootingCooldown: 2
+  shootingTimer: 0
+  shootForce: 10
+  projectile: {fileID: 5335234616209376763, guid: 1288a292d3904b04381a94aca2bf3229,
+    type: 3}
   onDeathEffect: {fileID: 2202897458413698358, guid: 30b7a1957135ff940be467ce58480000,
     type: 3}
 --- !u!61 &70508254
@@ -513,7 +514,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: 05930dc2d0238cc47977b8dd2de7144b, type: 3}
-  m_Color: {r: 0.4705882, g: 1, b: 0.5125521, a: 1}
+  m_Color: {r: 0.5137255, g: 1, b: 0.5568628, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -531,7 +532,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 70508252}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 26.85, y: 19.77, z: 0}
+  m_LocalPosition: {x: 26.99, y: 12.8, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -850,7 +851,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 504087780}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 32.764, y: 18.702, z: 0}
+  m_LocalPosition: {x: 32.904, y: 11.731999, z: 0}
   m_LocalScale: {x: 55.71187, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -1127,8 +1128,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 765588840}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.426, y: -2.07, z: 0}
-  m_LocalScale: {x: 55.71187, y: 2.982, z: 1}
+  m_LocalPosition: {x: 124.59, y: -2.07, z: 0}
+  m_LocalScale: {x: 300.28696, y: 2.982, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 3
@@ -1234,7 +1235,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 3.09, y: 6.11, z: -10}
+  m_LocalPosition: {x: 3, y: 6.93, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1133910775}
@@ -1618,13 +1619,13 @@ GameObject:
   - component: {fileID: 1376786448}
   - component: {fileID: 1376786451}
   - component: {fileID: 1376786450}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: Enemy
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!212 &1376786448
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1682,7 +1683,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1376786447}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 17.11, y: 19.77, z: 0}
+  m_LocalPosition: {x: 17.25, y: 12.8, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -1701,6 +1702,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 1
+  target: {fileID: 2414757}
+  shootingCooldown: 2
+  shootingTimer: 0
+  shootForce: 10
+  projectile: {fileID: 5335234616209376763, guid: 1288a292d3904b04381a94aca2bf3229,
+    type: 3}
   onDeathEffect: {fileID: 2202897458413698358, guid: 30b7a1957135ff940be467ce58480000,
     type: 3}
 --- !u!61 &1376786451
@@ -1729,6 +1736,62 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!1 &1460517517
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1460517519}
+  - component: {fileID: 1460517518}
+  m_Layer: 0
+  m_Name: TouchController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1460517518
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1460517517}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a1f79ea86ab8bc42ac21fdcdb2dfe23, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  longPressDuration: 0.5
+  tapRadiusPercent: 0.1
+  swipeMinInputTime: 0.3
+  swipeUpXMaxThresholdPercent: 0.1
+  swipeUpYMinThresholdPercent: 0.1
+  swipeRightXMinThresholdPercent: 0.1
+  swipeRightYMaxThresholdPercent: 0.1
+  swipeDownXMaxThresholdPercent: 0.1
+  swipeDownYMinThresholdPercent: 0.1
+  longPressDetected: 0
+  startPosition: {x: 0, y: 0}
+  endPosition: {x: 0, y: 0}
+  pressedTimer: 0
+--- !u!4 &1460517519
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1460517517}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 15.5573635, y: 10.144169, z: -15.53125}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 10
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1555607132
 GameObject:
   m_ObjectHideFlags: 0
@@ -1980,13 +2043,13 @@ GameObject:
   - component: {fileID: 1731730361}
   - component: {fileID: 1731730360}
   - component: {fileID: 1731730359}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: Enemy (1)
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1731730359
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2000,6 +2063,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 1
+  target: {fileID: 2414757}
+  shootingCooldown: 2
+  shootingTimer: 0
+  shootForce: 10
+  projectile: {fileID: 5335234616209376763, guid: 1288a292d3904b04381a94aca2bf3229,
+    type: 3}
   onDeathEffect: {fileID: 2202897458413698358, guid: 30b7a1957135ff940be467ce58480000,
     type: 3}
 --- !u!61 &1731730360
@@ -2085,7 +2154,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1731730358}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 22.07, y: 19.77, z: 0}
+  m_LocalPosition: {x: 22.21, y: 12.8, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -2103,13 +2172,13 @@ GameObject:
   - component: {fileID: 1860220480}
   - component: {fileID: 1860220479}
   - component: {fileID: 1860220478}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: Enemy (2)
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1860220478
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2123,6 +2192,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 1
+  target: {fileID: 2414757}
+  shootingCooldown: 2
+  shootingTimer: 0
+  shootForce: 10
+  projectile: {fileID: 5335234616209376763, guid: 1288a292d3904b04381a94aca2bf3229,
+    type: 3}
   onDeathEffect: {fileID: 2202897458413698358, guid: 30b7a1957135ff940be467ce58480000,
     type: 3}
 --- !u!61 &1860220479
@@ -2208,7 +2283,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1860220477}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 19.66, y: 19.77, z: 0}
+  m_LocalPosition: {x: 19.8, y: 12.8, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -2353,8 +2428,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2061045137}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 5.1193, y: 9.191, z: 0}
-  m_LocalScale: {x: 0.5004, y: 19.949728, z: 1}
+  m_LocalPosition: {x: 5.2592993, y: 5.219, z: 0}
+  m_LocalScale: {x: 0.5004, y: 13.9448595, z: 1}
   m_Children: []
   m_Father: {fileID: 1133910775}
   m_RootOrder: 2
