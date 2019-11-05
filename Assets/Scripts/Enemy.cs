@@ -25,8 +25,8 @@ public class Enemy : MonoBehaviour
     {
         if(target && shootingTimer < 0)
         {
-            Vector3 direction = target.position - transform.position;
-            Shoot(direction);
+            //Vector3 direction = target.position - transform.position;
+            Shoot(-Vector2.right);
         } else
         {
             shootingTimer -= Time.deltaTime;

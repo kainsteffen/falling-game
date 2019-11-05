@@ -11,7 +11,7 @@ public class Player : MonoBehaviour
     public StateMachine stateMachine = new StateMachine();
 
     public TouchController touchController;
-    public TimeManager timeManager;
+    public TimeController timeManager;
 
     public GameObject projectile;
     public GameObject graphics;
@@ -19,10 +19,14 @@ public class Player : MonoBehaviour
     public GameObject eyesLookRight;
     public ParticleSystem jumpParticle;
 
+    public float killRadius;
+    public LayerMask killLayer;
+
     public bool isGrounded;
     public Transform groundCheck;
     public float groundCheckRadius;
     public LayerMask groundLayer;
+    public LayerMask absoluteGroundLayer;
 
     public bool isWallSliding;
     public float wallSlideGravity;
@@ -60,14 +64,21 @@ public class Player : MonoBehaviour
     private Vector2 lookDirection;
 
     private Rigidbody2D rb;
+    private LineRenderer lr;
     private Vector2 graphicsDefaultScale;
     private float gravityDefaultScale;
     private float defaultDrag;
+
+    public float aimLineLength;
+    private Vector2 aimDirection;
+    private Vector2 dragStartPosition;
+    private bool focusMode;
 
     void Awake()
     {
         controls = new InputMaster();
         rb = GetComponent<Rigidbody2D>();
+        lr = GetComponent<LineRenderer>();
 
         gravityDefaultScale = rb.gravityScale;
         defaultScale = transform.localScale;
@@ -94,6 +105,21 @@ public class Player : MonoBehaviour
         stateMachine.Update();
         HandleSlowMoInput();
        // HandleShootInput();
+       if(focusMode)
+        {
+            if (Input.GetMouseButton(0))
+            {
+                aimDirection = dragStartPosition - (Vector2) Input.mousePosition;
+                DrawLine(transform.position, ((Vector2)transform.position + (aimDirection.normalized * aimLineLength)));
+            }
+            if(Input.GetMouseButtonUp(0))
+            {
+                focusMode = false;
+                lr.enabled = false;
+                Shoot(aimDirection.normalized);
+            }
+        }
+        DetectEnemies();
     }
 
     private void OnDrawGizmos()
@@ -102,12 +128,39 @@ public class Player : MonoBehaviour
         Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
         Gizmos.DrawWireSphere(wallCheckLeft.position, wallCheckRadius);
         Gizmos.DrawWireSphere(wallCheckRight.position, wallCheckRadius);
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, killRadius);
+    }
+
+    void DetectEnemies()
+    {
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, killRadius, killLayer);
+        foreach(Collider2D collider in colliders)
+        {
+            collider.GetComponent<Enemy>().TakeDamage(1);
+        }
+    }
+
+    IEnumerator JumpOff()
+    {
+        print(gameObject.layer);
+        print(groundLayer.value);
+        Physics2D.IgnoreLayerCollision(gameObject.layer, 8, true);
+        yield return new WaitForSeconds(.5f);
+        Physics2D.IgnoreLayerCollision(gameObject.layer, 8, false);
+    }
+
+    void DrawLine(Vector3 start, Vector3 end)
+    {
+        lr.SetPosition(0, start);
+        lr.SetPosition(1, end);
     }
 
     // TODO: fix jumpCounter resetting before leaving ground
     public bool CheckGround()
     {
-        return Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer) != null;
+        return Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer) != null 
+            || Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, absoluteGroundLayer);
     }
 
     public Vector2 CheckWall()
@@ -131,7 +184,18 @@ public class Player : MonoBehaviour
     {
         if(touchController.GetLongPress())
         {
+            focusMode = true;
+            lr.enabled = true;
+            dragStartPosition = Input.mousePosition;
             timeManager.StartSlowMotion();
+        }
+    }
+
+    public void HandleJumpOffInput()
+    {
+        if(touchController.GetSwipeDown())
+        {
+            StartCoroutine(JumpOff());
         }
     }
 
@@ -177,16 +241,16 @@ public class Player : MonoBehaviour
         }
     }
 
-    void HandleShootInput()
-    {
-        if (Input.GetMouseButtonDown(0))
-        {
-            Vector3 screenPoint = Input.mousePosition;
-            screenPoint.z = Mathf.Abs(Camera.main.transform.position.z); //distance of the plane from the camera
-            Vector3 direction = Vector3.Normalize(Camera.main.ScreenToWorldPoint(screenPoint) - transform.position);
-            Shoot(direction);
-        }
-    }
+    //void HandleShootInput()
+    //{
+    //    if (Input.GetMouseButtonDown(0))
+    //    {
+    //        Vector3 screenPoint = Input.mousePosition;
+    //        screenPoint.z = Mathf.Abs(Camera.main.transform.position.z); //distance of the plane from the camera
+    //        Vector3 direction = Vector3.Normalize(Camera.main.ScreenToWorldPoint(screenPoint) - transform.position);
+    //        Shoot(direction);
+    //    }
+    //}
 
     public void HandSlideInput()
     {
@@ -216,15 +280,11 @@ public class Player : MonoBehaviour
     {
         if (jumpCounter > 0)
         {
+            rb.velocity = new Vector2(rb.velocity.x, 0);
             rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
             jumpParticle.Play();
             jumpCounter--;
         }
-    }
-
-    void Duck()
-    {
-
     }
 
     public void ScaleToDefault()
@@ -241,29 +301,23 @@ public class Player : MonoBehaviour
     {
         rb.AddForce(new Vector2(wallJumpDirection.x * lookDirection.x, wallJumpDirection.y) * walljumpForce, ForceMode2D.Impulse);
         jumpParticle.Play();
-        stateMachine.ChangeState(new WallJumpingState(this));
     }
 
-    void Crouch()
-    {
-        transform.localScale = Vector2.Lerp(transform.localScale, slideScale, animSpeed);
-    }
-
-    void HandleJumpArc()
-    {
-        if (rb.velocity.y < 0)
-        {
-            rb.gravityScale = fallMultiplier;
-        }
-        else if (rb.velocity.y > 0 && !Input.GetKey(KeyCode.Space))
-        {
-            rb.gravityScale = lowJumpMultiplier;
-        }
-        else
-        {
-            rb.gravityScale = gravityDefaultScale;
-        }
-    }
+    //void HandleJumpArc()
+    //{
+    //    if (rb.velocity.y < 0)
+    //    {
+    //        rb.gravityScale = fallMultiplier;
+    //    }
+    //    else if (rb.velocity.y > 0 && !Input.GetKey(KeyCode.Space))
+    //    {
+    //        rb.gravityScale = lowJumpMultiplier;
+    //    }
+    //    else
+    //    {
+    //        rb.gravityScale = gravityDefaultScale;
+    //    }
+    //}
 
     public void SetLookDirection(Vector2 direction)
     {
@@ -329,6 +383,7 @@ public class GroundedState : State
         owner.Move(Vector2.right);
         owner.HandleJumpInput();
         owner.HandSlideInput();
+        owner.HandleJumpOffInput();
         owner.JumpAnimation();
 
         if (!owner.CheckGround())
@@ -405,11 +460,6 @@ public class WallSlidingState : State
     {
         owner.ScaleToDefault();
         owner.HandleWallJumpInput();
-        owner.ScaleToDefault();
-        if (owner.CheckGround())
-        {
-            owner.HandleMovementInput();
-        }
 
         if (owner.CheckWall() == Vector2.zero)
         {
@@ -419,7 +469,7 @@ public class WallSlidingState : State
             }
             else
             {
-                owner.stateMachine.ChangeState(new JumpingState(owner));
+                owner.stateMachine.ChangeState(new WallJumpingState(owner));
             }
         }
     }

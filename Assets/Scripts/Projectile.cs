@@ -19,16 +19,19 @@ public class Projectile : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        GameObject collider = collision.collider.gameObject;
+        GameObject collider = collision.gameObject;
+    }
+
+    private void OnTriggerEnter2D(Collider2D collider)
+    {
         if (collider.tag == "Enemy" && gameObject.tag == "Player")
         {
             collider.GetComponent<Enemy>().TakeDamage(damageAmount);
-            Die();
+            //Die();
         }
 
-        if (collider.tag == "Player" && gameObject.tag == "Enemy")
+        if (gameObject.tag == "EnemyProjectile")
         {
-            collider.GetComponent<Enemy>().TakeDamage(damageAmount);
             Die();
         }
     }

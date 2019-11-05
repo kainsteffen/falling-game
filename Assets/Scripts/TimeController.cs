@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
 using DG.Tweening;
 
-public class TimeManager : MonoBehaviour
+public class TimeController : MonoBehaviour
 {
 
     public float slowDownFactor;
@@ -42,6 +42,7 @@ public class TimeManager : MonoBehaviour
         chromaticAberration = ScriptableObject.CreateInstance<ChromaticAberration>();
         chromaticAberration.enabled.Override(true);
         chromaticAberration.intensity.Override(chromaticAberrationIntensity);
+        chromaticAberration.fastMode.Override(true);
 
         motionBlur = ScriptableObject.CreateInstance<MotionBlur>();
         motionBlur.enabled.Override(true);
