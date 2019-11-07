@@ -1,13 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
 using UnityEngine.Rendering.PostProcessing;
 using DG.Tweening;
 
 public class TimeController : MonoBehaviour
 {
-
     public float slowDownFactor;
     public float slowDownDuration;
 
@@ -55,11 +53,6 @@ public class TimeController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown("q"))
-        {
-            StartSlowMotion();
-        }
-
         if (slowedDown && slowDownTimer > 0)
         {
             Time.timeScale = Mathf.Lerp(Time.timeScale, slowDownFactor, 0.1f);
@@ -81,10 +74,17 @@ public class TimeController : MonoBehaviour
         slowedDown = true;
         slowDownTimer = slowDownDuration;
         Time.fixedDeltaTime = slowDownFactor * .02f;
-        TweenEffects();
+        StartTweenEffects();
     }
 
-    public void TweenEffects()
+    public void StopSlowMotion()
+    {
+        slowedDown = false;
+        Time.fixedDeltaTime = defaultFixedDeltaTime;
+        StopTweenEffects();
+    }
+
+    void StartTweenEffects()
     {
         DOTween.Sequence()
             .Append(DOTween.To(() => volume.weight, x => volume.weight = x, 1, 1f))
@@ -93,6 +93,12 @@ public class TimeController : MonoBehaviour
             .OnComplete(() =>
             {
                     //RuntimeUtilities.DestroyVolume(volume, true, true);
-                });
+            });
+    }
+
+    void StopTweenEffects()
+    {
+        DOTween.Clear();
+        DOTween.Sequence().Append(DOTween.To(() => volume.weight, x => volume.weight = x, 0, 1f));
     }
 }

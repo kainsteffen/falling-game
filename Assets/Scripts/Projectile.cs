@@ -20,19 +20,20 @@ public class Projectile : MonoBehaviour
     private void OnCollisionEnter2D(Collision2D collision)
     {
         GameObject collider = collision.gameObject;
+        if(collider.CompareTag("Player") && CompareTag("EnemyProjectile"))
+        {
+            collider.GetComponent<Player>().TakeDamage(damageAmount);
+            Die();
+        }
     }
+
 
     private void OnTriggerEnter2D(Collider2D collider)
     {
-        if (collider.tag == "Enemy" && gameObject.tag == "Player")
+        if (collider.CompareTag("Enemy") && gameObject.tag == "Player")
         {
             collider.GetComponent<Enemy>().TakeDamage(damageAmount);
             //Die();
-        }
-
-        if (gameObject.tag == "EnemyProjectile")
-        {
-            Die();
         }
     }
 

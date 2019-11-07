@@ -7,17 +7,21 @@ using UnityEngine.InputSystem;
 
 public class Player : MonoBehaviour
 {
-    public InputMaster controls = null;
     public StateMachine stateMachine = new StateMachine();
 
     public TouchController touchController;
-    public TimeController timeManager;
+    public TimeController timeController;
 
     public GameObject projectile;
     public GameObject graphics;
     public GameObject eyesLookingLeft;
     public GameObject eyesLookRight;
     public ParticleSystem jumpParticle;
+
+    public float maxHealth;
+    public float currentHealth;
+    public int maxAmmo;
+    public int currentAmmo;
 
     public float killRadius;
     public LayerMask killLayer;
@@ -76,9 +80,11 @@ public class Player : MonoBehaviour
 
     void Awake()
     {
-        controls = new InputMaster();
         rb = GetComponent<Rigidbody2D>();
         lr = GetComponent<LineRenderer>();
+
+        currentHealth = maxHealth;
+        currentAmmo = maxAmmo;
 
         gravityDefaultScale = rb.gravityScale;
         defaultScale = transform.localScale;
@@ -90,21 +96,11 @@ public class Player : MonoBehaviour
         stateMachine.ChangeState(new GroundedState(this));
     }
 
-    private void OnEnable()
-    {
-        controls.Player.Enable();
-    }
-
-    private void OnDisable()
-    {
-        controls.Player.Disable();
-    }
-
     private void Update()
     {
         stateMachine.Update();
         HandleSlowMoInput();
-       // HandleShootInput();
+
        if(focusMode)
         {
             if (Input.GetMouseButton(0))
@@ -116,10 +112,25 @@ public class Player : MonoBehaviour
             {
                 focusMode = false;
                 lr.enabled = false;
-                Shoot(aimDirection.normalized);
+                if(aimDirection.magnitude > 0 && currentAmmo > 0)
+                {
+                    Shoot(aimDirection.normalized);
+                    currentAmmo--;
+                }
+                timeController.StopSlowMotion();
             }
         }
         DetectEnemies();
+        HandleHealth();
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if(other.CompareTag("AmmoPickup"))
+        {
+            FillAmmo(1);
+            Destroy(other.gameObject.gameObject);
+        }
     }
 
     private void OnDrawGizmos()
@@ -143,8 +154,6 @@ public class Player : MonoBehaviour
 
     IEnumerator JumpOff()
     {
-        print(gameObject.layer);
-        print(groundLayer.value);
         Physics2D.IgnoreLayerCollision(gameObject.layer, 8, true);
         yield return new WaitForSeconds(.5f);
         Physics2D.IgnoreLayerCollision(gameObject.layer, 8, false);
@@ -180,6 +189,35 @@ public class Player : MonoBehaviour
         return Vector2.zero;
     }
 
+    void HandleHealth()
+    {
+        if(currentHealth <= 0)
+        {
+            Die();
+        }
+    }
+
+    public void TakeDamage(float damage)
+    {
+        currentHealth -= damage;
+    }
+
+    void Die()
+    {
+        Destroy(gameObject);
+    }
+
+    void FillAmmo(int amount)
+    {
+        if(currentAmmo + amount > maxAmmo)
+        {
+            currentAmmo = maxAmmo;
+        } else
+        {
+            currentAmmo += amount;
+        }
+    }
+
     public void HandleSlowMoInput()
     {
         if(touchController.GetLongPress())
@@ -187,7 +225,7 @@ public class Player : MonoBehaviour
             focusMode = true;
             lr.enabled = true;
             dragStartPosition = Input.mousePosition;
-            timeManager.StartSlowMotion();
+            timeController.StartSlowMotion();
         }
     }
 
@@ -531,7 +569,7 @@ public class SlidingState : State
 
     public void Execute()
     {
-        DOTween.To(() => owner.graphics.transform.localScale, x => owner.graphics.transform.localScale = x, (Vector3)owner.slideScale, .1f);
+        DOTween.To(() => owner.transform.localScale, x => owner.transform.localScale = x, (Vector3)owner.slideScale, .05f);
         timer -= Time.deltaTime;
         owner.Move(Vector2.right);
         if (timer < 0)
